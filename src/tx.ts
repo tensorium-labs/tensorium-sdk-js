@@ -2,6 +2,7 @@ import * as secp from '@noble/secp256k1';
 import { sha256 } from '@noble/hashes/sha256';
 import { hmac } from '@noble/hashes/hmac';
 import type { Utxo, TxOutput, RawTx } from './types.js';
+import { bytesToHex, hexToBytes } from './encoding.js';
 
 // @noble/secp256k1 v2 requires hmacSha256Sync for synchronous sign()
 secp.etc.hmacSha256Sync = (k, ...m) => hmac(sha256, k, secp.etc.concatBytes(...m));
@@ -80,7 +81,7 @@ export function txId(
     parts.push(new TextEncoder().encode(out.address));
   }
   parts.push(payload);
-  return Buffer.from(doubleSha256(concat(parts))).toString('hex');
+  return bytesToHex(doubleSha256(concat(parts)));
 }
 
 export function selectUtxos(utxos: Utxo[], targetAtoms: bigint): Utxo[] {
@@ -105,7 +106,7 @@ export function buildAndSign(
 ): RawTx {
   const unsignedInputs: UnsignedInput[] = utxos.map(u => ({
     previous_output: {
-      txid: Uint8Array.from(Buffer.from(u.txid, 'hex')),
+      txid: hexToBytes(u.txid),
       output_index: u.output_index,
     },
     signature_script: new Uint8Array(0),
@@ -119,11 +120,11 @@ export function buildAndSign(
   }
 
   const sigHashHex = txId(unsignedInputs, allOutputs, payload);
-  const sigHashBytes = Uint8Array.from(Buffer.from(sigHashHex, 'hex'));
+  const sigHashBytes = hexToBytes(sigHashHex);
 
-  const privBytes = Uint8Array.from(Buffer.from(wallet.privateKeyHex, 'hex'));
+  const privBytes = hexToBytes(wallet.privateKeyHex);
   const sig = secp.sign(sigHashBytes, privBytes);
-  const derHex = Buffer.from(sigToDER(sig.toCompactRawBytes())).toString('hex');
+  const derHex = bytesToHex(sigToDER(sig.toCompactRawBytes()));
 
   const sigScriptBytes = Array.from(
     new TextEncoder().encode(JSON.stringify({ public_key_hex: wallet.publicKeyHex, signature_hex: derHex }))
@@ -147,7 +148,7 @@ export function buildAndSign(
   const finalTxId = txId(signedForId, allOutputs, payload);
 
   return {
-    id: Array.from(Uint8Array.from(Buffer.from(finalTxId, 'hex'))),
+    id: Array.from(hexToBytes(finalTxId)),
     inputs: signedInputs,
     outputs: allOutputs.map(o => ({ value_atoms: Number(o.value_atoms), address: o.address })),
     payload: Array.from(payload),

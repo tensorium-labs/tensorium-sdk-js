@@ -1,6 +1,7 @@
 import * as secp from '@noble/secp256k1';
 import { sha256 } from '@noble/hashes/sha256';
 import { bech32 } from 'bech32';
+import { bytesToHex, hexToBytes } from './encoding.js';
 
 const ADDRESS_HRP = 'txm';
 
@@ -18,8 +19,8 @@ export class TxmWallet {
 
   private constructor(privateKeyBytes: Uint8Array) {
     const pubkey = secp.getPublicKey(privateKeyBytes, true); // compressed
-    this.privateKeyHex = Buffer.from(privateKeyBytes).toString('hex');
-    this.publicKeyHex = Buffer.from(pubkey).toString('hex');
+    this.privateKeyHex = bytesToHex(privateKeyBytes);
+    this.publicKeyHex = bytesToHex(pubkey);
     this.address = pubkeyToAddress(pubkey);
   }
 
@@ -28,7 +29,7 @@ export class TxmWallet {
   }
 
   static fromPrivateKey(hex: string): TxmWallet {
-    const bytes = Uint8Array.from(Buffer.from(hex, 'hex'));
+    const bytes = hexToBytes(hex);
     return new TxmWallet(bytes);
   }
 }
