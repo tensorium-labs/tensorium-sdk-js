@@ -13,7 +13,7 @@ npm install @tensorium/sdk
 ```typescript
 import { TxmWallet, TxmRPC, send } from '@tensorium/sdk';
 
-const rpc    = new TxmRPC('https://mc-rpc.tensoriumlabs.com');
+const rpc    = new TxmRPC('https://rpc.tensoriumlabs.com');
 const wallet = TxmWallet.fromPrivateKey(process.env.TXM_PRIVATE_KEY!);
 
 // Check balance
@@ -73,7 +73,7 @@ Build and sign a raw transaction. Adds change output automatically.
 | Address prefix | `txm1q…` (bech32) |
 | Curve | secp256k1 |
 | Hash | SHA-256d |
-| RPC | `https://mc-rpc.tensoriumlabs.com` |
+| RPC | `https://rpc.tensoriumlabs.com` |
 
 ## Links
 
